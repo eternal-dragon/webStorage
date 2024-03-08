@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"github.com/gorilla/mux"
-	"github.com/sirupsen/logrus"
+	// "github.com/sirupsen/logrus"
 )
 
 func HandleAdd(w http.ResponseWriter, r *http.Request) {
@@ -19,15 +19,15 @@ func HandleAdd(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, role, err := util.GetUser(w, r)
-	if err != nil {
-		logrus.Error(util.Errorf("get user failed").WithCause(err))
-		return
-	}
-	if role < util.RoleManager {
-		w.WriteHeader(http.StatusForbidden)
-		return
-	}
+	// _, role, err := util.GetUser(w, r)
+	// if err != nil {
+	// 	logrus.Error(util.Errorf("get user failed").WithCause(err))
+	// 	return
+	// }
+	// if role < util.RoleManager {
+	// 	w.WriteHeader(http.StatusForbidden)
+	// 	return
+	// }
 
 	webJson := r.Body
 	decoder := json.NewDecoder(webJson)
@@ -74,15 +74,15 @@ func HandleDelete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, role, err := util.GetUser(w, r)
-	if err != nil {
-		logrus.Error(util.Errorf("get user failed").WithCause(err))
-		return
-	}
-	if role < util.RoleManager {
-		w.WriteHeader(http.StatusForbidden)
-		return
-	}
+	// _, role, err := util.GetUser(w, r)
+	// if err != nil {
+	// 	logrus.Error(util.Errorf("get user failed").WithCause(err))
+	// 	return
+	// }
+	// if role < util.RoleManager {
+	// 	w.WriteHeader(http.StatusForbidden)
+	// 	return
+	// }
 
 	idString := mux.Vars(r)["id"]
 	id, err := strconv.Atoi(idString)
