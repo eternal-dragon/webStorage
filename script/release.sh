@@ -1,7 +1,7 @@
 #!/bin/bash
 # 如果没有提供参数，则使用默认值
 if [ $# -eq 0 ]; then
-    serverName="master"
+    serverName="www"
 else
     serverName=$1
 fi
@@ -16,7 +16,7 @@ sleep 3
 
 # golang
 bash ./go-build.sh
-scp ./server/main/build/webStorageserver webStorage:~/$serverpath/golangserver
+scp ./server/main/build/webStorageServer webStorage:~/$serverpath/golangserver
 echo "golang finish!"
 sleep 3
 

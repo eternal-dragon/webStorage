@@ -12,4 +12,4 @@ echo "DBpath: $DBpath"
 echo "golangPort: $golangPort"
 
 cd ~/$serverpath/golangserver
-./webStorageserver --mongodb.name=$DBpath --port=$golangPort
+./webStorageServer --mongodb.name=$DBpath --port=$golangPort

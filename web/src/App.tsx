@@ -52,7 +52,7 @@ function App () {
     const handleUrlChange = ( event: React.ChangeEvent<HTMLInputElement> ) => {
         setExampleData( ( prevData ) => ( {
             ...prevData,
-            Urlrl: event.target.value,
+            Url: event.target.value,
             save: prevData.save,
             delete: prevData.delete,
             show: prevData.show,
