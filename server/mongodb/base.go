@@ -12,7 +12,7 @@ import (
 )
 
 var mongodbAddr = flag.String("mongodb.addr", "localhost:27017", "mongodb addr, default localhost:27017")
-var mongodbName = flag.String("mongodb.name", "DongenMaker", "mongodb name, default DongenMaker")
+var mongodbName = flag.String("mongodb.name", "webStorage", "mongodb name, default webStorage")
 var db *mongo.Database
 
 const dbTimeoutTime = 5 * time.Second

@@ -62,6 +62,11 @@ function App () {
                     } ) }
                 </ul>
             </div>
+            <div style={ { display: "flex", justifyContent: "center" } }>
+                <a href="https://beian.miit.gov.cn" style={ { color: 'white' } }>
+                    ICP备2023022447号-1
+                </a>
+            </div>
         </div>
     )
 }

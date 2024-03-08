@@ -1,8 +1,6 @@
-const serverName = "test"
-
 const config = {
     production: {
-        apiUrl: `http://${ serverName }.shian-shadowearth.cn/v1/`,
+        apiUrl: `http://dytx2tyxt.com.cn/v1/`,
         debugMode: false,
     },
     development: {
