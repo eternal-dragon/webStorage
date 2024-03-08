@@ -67,13 +67,12 @@ export class WebData {
     }
 }
 
-export function Search ( tags: string[] ): WebData[] {
-    api.get( `/web/` + tags.join( "," ) )
-        .then( response => {
-            return response.data
-        } )
-        .catch( error => {
-            console.error( 'Error search ' + tags.join( "," ) + ':', error )
-        } )
-    return []
+export async function Search ( tags: string[] ): Promise<WebData[]> {
+    try {
+        const response = await api.get( `/web/` + tags.join( "," ) )
+        return response.data
+    } catch ( error ) {
+        console.error( 'Error search ' + tags.join( "," ) + ':', error )
+        return []
+    }
 }

@@ -43,7 +43,7 @@ echo "setting nginx"
 # set Nginx
 server_block="server {
     listen 80;
-    server_name dytx2tyxt.com; # 域名地址
+    server_name $serverName.dytx2tyxt.com; # 域名地址
 
     location / {
         proxy_pass http://localhost:$reactPort; # 转发到React开发服务器
@@ -56,7 +56,7 @@ server_block="server {
 nginx_conf="/etc/nginx/nginx.conf"
 
 # 检查是否存在相同的 server_name 或端口
-if grep -qF "dytx2tyxt.com" "$nginx_conf" ||
+if grep -qF "$serverName.dytx2tyxt.com" "$nginx_conf" ||
     grep -qF "http://localhost:$golangPort;" "$nginx_conf" ||
     grep -qF "http://localhost:$reactPort;" "$nginx_conf"; then
     echo "Nginx configuration already exists for server_name or port. Aborting."

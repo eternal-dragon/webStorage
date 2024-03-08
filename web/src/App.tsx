@@ -16,9 +16,14 @@ function App () {
         if ( !tags ) {
             return
         }
-        const datas = Search( tags )
-        setWebDatas( datas )
-        console.log( datas )
+        Search( tags )
+            .then( datas => {
+                setWebDatas( datas )
+                console.log( datas )
+            } )
+            .catch( error => {
+                console.error( 'Error searching:', error )
+            } )
     }
     const addTag = ( tag: string ) => {
         if ( !tags.includes( tag ) ) {

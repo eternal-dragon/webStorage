@@ -1,7 +1,6 @@
 import React, { useState, useEffect, createContext, FC, ReactNode, useContext } from 'react'
 import { api } from './network/api'
 
-import { Alert } from "@mui/material"
 import { Navigate } from "react-router-dom"
 import Cookies from "js-cookie"
 
@@ -64,7 +63,7 @@ export const UserDataProvider: FC<{ children: ReactNode }> = ( { children } ) =>
     }, [ userData ] )
 
     return (
-        <UserDataContext.Provider value={ { userData,  setUserName, setUserData } }>
+        <UserDataContext.Provider value={ { userData, setUserName, setUserData } }>
             { children }
         </UserDataContext.Provider>
     )
@@ -77,8 +76,4 @@ export function Logout () {
     }
     ctx.setUserName( null )
     Cookies.remove( "session" )
-    window.location.href = '/'
-    return <div>
-        <Alert severity="success">退出成功</Alert>
-    </div>
 }

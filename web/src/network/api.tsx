@@ -1,7 +1,6 @@
 import axios from 'axios'
 import config from './config'
 import Cookies from 'js-cookie'
-import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 const env = process.env.NODE_ENV || 'production'
 
 // 创建 Axios 实例

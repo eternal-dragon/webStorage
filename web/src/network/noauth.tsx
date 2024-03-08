@@ -7,7 +7,7 @@ export default function NoAuth () {
         <div style={ { color: "#dddddd", fontFamily: "Microsoft Yahei" } }>
             <h1>登录信息错误！</h1>
             您的登录信息已过期，或者所访问的页面权限不足！
-            <Link to="/关于网站/介绍">返回首页</Link>
+            <Link to="/">返回首页</Link>
         </div>
     )
 }

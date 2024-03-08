@@ -16,14 +16,18 @@ sleep 3
 
 # golang
 bash ./go-build.sh
-scp ./wod-go/main/build/webStorageserver webStorage:~/$serverpath/golangserver
+scp ./server/main/build/webStorageserver webStorage:~/$serverpath/golangserver
 echo "golang finish!"
 sleep 3
 
 # react
+networkConfig="./web/src/network/config.tsx"
+cp $networkConfig config_backup.tsx
+sed -i "s/const serverName = \"test\"/const serverName = \"$serverName\"/" $networkConfig
+
 bash ./react-build.sh
 
 cp config_backup.tsx $networkConfig
 rm config_backup.tsx
 
-scp -r ./wod-page/build webStorage:~/$serverpath/reactserver
+scp -r ./web/build webStorage:~/$serverpath/reactserver

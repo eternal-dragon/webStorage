@@ -18,7 +18,7 @@ var (
 	enableSwagger = flag.Bool("swagger", false, "if serve swagger")
 	debugMode     = flag.Bool("debug", false, "if print debug log")
 	mongo         = flag.Bool("mongodb", true, "use mongodb")
-	flagPort      = flag.String("port", "8080", "server port. Default as 8080.")
+	flagPort      = flag.String("port", "8081", "server port. Default as 8081.")
 )
 
 var router = mux.NewRouter()
