@@ -15,10 +15,11 @@ var WebDatadb *mongo.Collection
 var WebDataNum int
 
 type WebData struct {
-	ID   int `bson:"_id"`
-	Name string
-	Url  string
-	tags []string
+	ID          int `bson:"_id"`
+	Name        string
+	Url         string
+	Tags        []string
+	Description string
 }
 
 func init() {

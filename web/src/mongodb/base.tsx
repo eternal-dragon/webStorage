@@ -1,18 +1,18 @@
-import { Button, Card, CardContent, Chip, Tooltip, Typography } from "@mui/material"
+import { Button, Card, CardContent, Chip, Link, Tooltip, Typography } from "@mui/material"
 import { api } from "../network/api"
 
 export class WebData {
-    public id?: number
-    public name?: string
-    public url!: string // This is a single Primitive
-    public description?: string
-    public tags?: string[] // This is a Primitive Array
+    public ID?: number
+    public Name?: string
+    public Url!: string // This is a single Primitive
+    public Description?: string
+    public Tags!: string[] // This is a Primitive Array
 
-    constructor ( url: string, name?: string, tags?: string[], description?: string ) {
-        this.name = name
-        this.url = url
-        this.description = description
-        this.tags = tags
+    constructor ( url: string, tags: string[], name?: string, description?: string ) {
+        this.Name = name
+        this.Url = url
+        this.Description = description
+        this.Tags = tags
     }
 
     public save () {
@@ -21,20 +21,20 @@ export class WebData {
                 console.log( response.data )
             } )
             .catch( error => {
-                console.error( 'Error add ' + this.url + ':', error )
+                console.error( 'Error add ' + this.Url + ':', error )
             } )
     }
 
     public delete () {
-        if ( !this.id ) {
+        if ( !this.ID ) {
             return
         }
-        api.delete( `/web/` + this.id )
+        api.delete( `/web/` + this.ID )
             .then( response => {
                 console.log( response.data )
             } )
             .catch( error => {
-                console.error( 'Error delete ' + this.url + ':', error )
+                console.error( 'Error delete ' + this.Url + ':', error )
             } )
     }
 
@@ -42,16 +42,17 @@ export class WebData {
         return (
             <Card>
                 <CardContent>
-                    <Typography variant="h6">{ this.name }</Typography>
-                    { this.description && (
-                        <Tooltip title={ this.description } arrow>
-                            <Typography variant="body1">Description: { this.description }</Typography>
-                        </Tooltip>
-                    ) }
-                    <Typography variant="body2">URL: { this.url }</Typography>
+                    <Tooltip title={
+                        this.Description ? (
+                            <Typography variant="body1">Description: { this.Description }</Typography>
+                        ) : <div />
+                    } arrow>
+                        <Typography variant="h6">{ this.Name }</Typography>
+                    </Tooltip>
+                    <Link href={ this.Url }>{ this.Url }</Link>
                     <Typography variant="body2">
                         Tags:
-                        { this.tags?.map( ( tag, index ) => (
+                        { this.Tags?.map( ( tag, index ) => (
                             <Chip
                                 key={ index }
                                 label={ tag }
@@ -70,7 +71,14 @@ export class WebData {
 export async function Search ( tags: string[] ): Promise<WebData[]> {
     try {
         const response = await api.get( `/web/` + tags.join( "," ) )
-        return response.data
+        console.log( response.data )
+
+        // 创建 WebData 数组
+        const webDataArray: WebData[] = response.data.map( ( data: WebData ) => {
+            return new WebData( data.Url, data.Tags, data.Name, data.Description )
+        } )
+
+        return webDataArray
     } catch ( error ) {
         console.error( 'Error search ' + tags.join( "," ) + ':', error )
         return []
