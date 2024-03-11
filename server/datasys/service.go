@@ -13,7 +13,7 @@ import (
 	// "github.com/sirupsen/logrus"
 )
 
-func HandleAdd(w http.ResponseWriter, r *http.Request) {
+func HandleAddWeb(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
@@ -48,7 +48,7 @@ func HandleAdd(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "success")
 }
 
-func HandleSearch(w http.ResponseWriter, r *http.Request) {
+func HandleSearchWeb(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
@@ -68,7 +68,7 @@ func HandleSearch(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, util.EncodeJson(webDatas))
 }
 
-func HandleDelete(w http.ResponseWriter, r *http.Request) {
+func HandleDeleteWeb(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
@@ -93,6 +93,87 @@ func HandleDelete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = mongodb.DeleteWebData(id)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(w, err.Error())
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintf(w, "success")
+}
+
+func HandleAddTag(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
+	// _, role, err := util.GetUser(w, r)
+	// if err != nil {
+	// 	logrus.Error(util.Errorf("get user failed").WithCause(err))
+	// 	return
+	// }
+	// if role < util.RoleManager {
+	// 	w.WriteHeader(http.StatusForbidden)
+	// 	return
+	// }
+
+	tagJson := r.Body
+	decoder := json.NewDecoder(tagJson)
+	var tagData mongodb.Tag
+	if err := decoder.Decode(&tagData); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(w, err.Error())
+		return
+	}
+
+	if _, err := mongodb.AddTag(tagData); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(w, err.Error())
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintf(w, "success")
+}
+
+func HandleGetAllTags(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
+	tags, err := mongodb.GetAllTags()
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(w, err.Error())
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprint(w, util.EncodeJson(tags))
+}
+
+func HandleDeleteTag(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
+	// _, role, err := util.GetUser(w, r)
+	// if err != nil {
+	// 	logrus.Error(util.Errorf("get user failed").WithCause(err))
+	// 	return
+	// }
+	// if role < util.RoleManager {
+	// 	w.WriteHeader(http.StatusForbidden)
+	// 	return
+	// }
+
+	name := mux.Vars(r)["name"]
+
+	err := mongodb.DeleteTag(name)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprint(w, err.Error())

@@ -47,48 +47,139 @@ func (WebData) initTable() {
 }
 
 // 插入 WebData 表数据
-func AddWebData(data WebData) (int, error) {
-	WebDataNum++
-	data.ID = WebDataNum
+func AddWebData(data WebData) (num int, err error) {
+	session, err := WebDatadb.Database().Client().StartSession()
+	defer session.EndSession(context.Background())
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeoutTime)
 	defer cancel()
-	res, err := WebDatadb.InsertOne(ctx, data)
+	sctx := mongo.NewSessionContext(ctx, session)
+	if err = session.StartTransaction(); err != nil {
+		return 0, util.Errorf("add WebData with Name %s failed", data.Name).WithCause(err)
+	}
+	defer func() {
+		if err == nil {
+			session.CommitTransaction(context.Background())
+		} else {
+			session.AbortTransaction(context.Background())
+		}
+	}()
+
+	WebDataNum++
+	data.ID = WebDataNum
+	res, err := WebDatadb.InsertOne(sctx, data)
 	if err != nil {
 		return 0, util.Errorf("add WebData %s failed to exec.", data.Name).WithCause(err)
+	}
+	for _, tag := range data.Tags {
+		err := IncTagRef(sctx, tag, 1)
+		if err != nil {
+			return 0, util.Errorf("add WebData with Name %s failed", data.Name).WithCause(err)
+		}
 	}
 
 	return int(res.InsertedID.(int32)), nil
 }
 
 // 删除 WebData 表数据
-func DeleteWebData(ID int) error {
-	filter := bson.M{"_id": ID}
+func DeleteWebData(ID int) (err error) {
+	session, err := WebDatadb.Database().Client().StartSession()
+	defer session.EndSession(context.Background())
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeoutTime)
 	defer cancel()
-	result, err := WebDatadb.DeleteOne(ctx, filter)
+	sctx := mongo.NewSessionContext(ctx, session)
+	if err = session.StartTransaction(); err != nil {
+		return util.Errorf("delete WebData with ID %d failed", ID).WithCause(err)
+	}
+	defer func() {
+		if err == nil {
+			session.CommitTransaction(context.Background())
+		} else {
+			session.AbortTransaction(context.Background())
+		}
+	}()
+
+	filter := bson.M{"_id": ID}
+	var deletedWebData WebData
+	err = WebDatadb.FindOneAndDelete(sctx, filter).Decode(&deletedWebData)
 	if err != nil {
-		return util.Errorf("delete WebData with Name %d failed", ID).WithCause(err)
+		if err == mongo.ErrNoDocuments {
+			return nil
+		}
+		return util.Errorf("delete WebData with ID %d failed", ID).WithCause(err)
 	}
-	// ignore not found error
-	if result.DeletedCount == 0 {
-		util.Errorf("delete WebData %d failed", ID).WithCause(err).WithCode(codes.NotFound).Log()
+
+	for _, tag := range deletedWebData.Tags {
+		err := IncTagRef(sctx, tag, -1)
+		if err != nil {
+			if util.HaveErrorCode(err, codes.NotFound) {
+				continue
+			}
+			return util.Errorf("delete WebData with ID %d failed", ID).WithCause(err)
+		}
 	}
+
 	return nil
 }
 
 // 更新 WebData 表数据
 func UpdateWebData(data WebData) error {
-	filter := bson.M{"_id": data.ID}
-	update := bson.M{"$set": data}
+	session, err := WebDatadb.Database().Client().StartSession()
+	defer session.EndSession(context.Background())
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeoutTime)
 	defer cancel()
-	result, err := WebDatadb.UpdateOne(ctx, filter, update)
+	sctx := mongo.NewSessionContext(ctx, session)
+	if err = session.StartTransaction(); err != nil {
+		return util.Errorf("delete WebData with name %s failed", data.Name).WithCause(err)
+	}
+	defer func() {
+		if err == nil {
+			session.CommitTransaction(context.Background())
+		} else {
+			session.AbortTransaction(context.Background())
+		}
+	}()
+
+	filter := bson.M{"_id": data.ID}
+	update := bson.M{"$set": data}
+	var originData WebData
+	err = WebDatadb.FindOneAndUpdate(sctx, filter, update).Decode(&originData)
 	if err != nil {
 		return util.Errorf("update WebData %s failed", data.Name).WithCause(err)
 	}
-	if result.ModifiedCount == 0 {
-		return util.Errorf("update WebData %s failed", data.Name).WithCause(err).WithCode(codes.NotFound)
+
+	originTags := originData.Tags
+	newTags := data.Tags
+	ignoreTags := make(map[string]interface{})
+	for _, ot := range originTags {
+		for _, nt := range newTags {
+			if ot == nt {
+				ignoreTags[ot] = struct{}{}
+				continue
+			}
+		}
 	}
+	for _, ot := range originTags {
+		if _, ok := ignoreTags[ot]; ok {
+			continue
+		}
+		err := IncTagRef(sctx, ot, -1)
+		if err != nil {
+			if util.HaveErrorCode(err, codes.NotFound) {
+				continue
+			}
+			return util.Errorf("delete WebData with name %s failed", data.Name).WithCause(err)
+		}
+	}
+	for _, nt := range newTags {
+		if _, ok := ignoreTags[nt]; ok {
+			continue
+		}
+		err := IncTagRef(sctx, nt, 1)
+		if err != nil {
+			return util.Errorf("delete WebData with name %s failed", data.Name).WithCause(err)
+		}
+	}
+
 	return nil
 }
 
