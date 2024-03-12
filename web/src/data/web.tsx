@@ -1,5 +1,6 @@
-import { Button, Card, CardContent, Chip, Link, Tooltip, Typography } from "@mui/material"
+import { Button, Card, CardContent, Chip, IconButton, Link, Tooltip, Typography } from "@mui/material"
 import { api } from "../network/api"
+import { MdDelete } from "react-icons/md"
 
 export class WebData {
     public ID?: number
@@ -8,11 +9,12 @@ export class WebData {
     public Description?: string
     public Tags!: string[] // This is a Primitive Array
 
-    constructor ( url: string, tags: string[], name?: string, description?: string ) {
+    constructor ( url: string, tags: string[], name?: string, description?: string, id?: number ) {
         this.Name = name
         this.Url = url
         this.Description = description
         this.Tags = tags
+        this.ID = id
     }
 
     public save () {
@@ -21,11 +23,12 @@ export class WebData {
                 console.log( response.data )
             } )
             .catch( error => {
-                return 'Error add web ' + this.Url + ':' + error
+                console.log( 'Error add web ' + this.Url + ':' + error )
             } )
     }
 
     public delete () {
+        console.log( this )
         if ( !this.ID ) {
             return
         }
@@ -34,24 +37,36 @@ export class WebData {
                 console.log( response.data )
             } )
             .catch( error => {
-                return 'Error delete web ' + this.Url + ':' + error
+                console.log( 'Error delete web ' + this.Url + ':' + error )
             } )
     }
 
-    public show ( addTag: ( tag: string ) => void ) {
+    public show ( addTag: ( tag: string ) => void, deleteData: () => void ) {
         return (
-            <Card style={ { margin: '5px' } }>
+            <Card key={ this.ID } style={ { margin: '5px' } }>
                 <CardContent>
-                    <Tooltip title={
-                        this.Description ? (
-                            <Typography variant="body1">Description: { this.Description }</Typography>
-                        ) : null
-                    } arrow>
-                        <Typography variant="h6">{ this.Name }</Typography>
-                    </Tooltip>
-                    <Link href={ this.Url }>{ this.Url }</Link>
-                    <Typography variant="body2">
-                        Tags:
+                    <div style={ { display: 'flex', justifyContent: 'space-between', alignItems: 'center' } }>
+                        <Tooltip title={
+                            this.Description ? (
+                                <Typography variant="body1">Description: { this.Description }</Typography>
+                            ) : null
+                        } arrow>
+                            <Typography variant="h6">{ this.Name }</Typography>
+                        </Tooltip>
+                        <IconButton onClick={ () => {
+                            this.delete()
+                            deleteData()
+                        } }>
+                            <MdDelete />
+                        </IconButton>
+
+                    </div>
+                    <Link href={ this.Url } target="_blank" rel="noopener noreferrer">{ this.Url }</Link>
+
+                    <div style={ { display: 'flex', alignItems: 'center' } }>
+                        <Typography variant="body2">
+                            Tags:
+                        </Typography>
                         { this.Tags?.map( ( tag, index ) => (
                             <Chip
                                 key={ index }
@@ -61,7 +76,7 @@ export class WebData {
                                 style={ { margin: '0.5rem' } }
                             />
                         ) ) }
-                    </Typography>
+                    </div>
                 </CardContent>
             </Card>
         )
@@ -75,7 +90,7 @@ export async function Search ( tags: string[] ): Promise<WebData[]> {
 
         // 创建 WebData 数组
         const webDataArray: WebData[] = response.data.map( ( data: WebData ) => {
-            return new WebData( data.Url, data.Tags, data.Name, data.Description )
+            return new WebData( data.Url, data.Tags, data.Name, data.Description, data.ID )
         } )
 
         return webDataArray

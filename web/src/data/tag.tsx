@@ -28,7 +28,7 @@ export class TagData {
                 console.log( response.data )
             } )
             .catch( error => {
-                return 'Error delete tag ' + this.Name + ':' + error
+                console.log( 'Error delete tag ' + this.Name + ':' + error )
             } )
     }
 }

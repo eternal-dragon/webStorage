@@ -28,6 +28,15 @@ function App () {
         saveData.Tags = tags
         saveData.save()
     }
+
+    const delelteData = ( id: number | undefined ) => {
+        if ( !webDatas || !id ) {
+            return
+        }
+        const updatedWebDatas = webDatas.filter( ( data ) => data.ID !== id )
+        setWebDatas( updatedWebDatas )
+    }
+
     const searchData = () => {
         if ( !tags ) {
             alert( "请选择要搜索的tag" )
@@ -42,6 +51,7 @@ function App () {
                 console.error( 'Error searching:', error )
             } )
     }
+
     const addTag = ( tag: string ) => {
         if ( !tags.includes( tag ) ) {
             const newTags: string[] = [ ...tags, tag ]
@@ -256,8 +266,7 @@ function App () {
                 <h2>搜索结果:</h2>
                 <ul>
                     { webDatas && webDatas.map( ( data ) => {
-                        console.log( data )
-                        return data.show( ( tag: string ): void => { addTag( tag ) } )
+                        return data.show( ( tag: string ): void => { addTag( tag ) }, () => ( delelteData( data.ID ) ) )
                     } ) }
                 </ul>
             </div>
