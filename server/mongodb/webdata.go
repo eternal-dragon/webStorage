@@ -48,30 +48,30 @@ func (WebData) initTable() {
 
 // 插入 WebData 表数据
 func AddWebData(data WebData) (num int, err error) {
-	session, err := WebDatadb.Database().Client().StartSession()
-	defer session.EndSession(context.Background())
+	// session, err := WebDatadb.Database().Client().StartSession()
+	// defer session.EndSession(context.Background())
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeoutTime)
 	defer cancel()
-	sctx := mongo.NewSessionContext(ctx, session)
-	if err = session.StartTransaction(); err != nil {
-		return 0, util.Errorf("add WebData with Name %s failed", data.Name).WithCause(err)
-	}
-	defer func() {
-		if err == nil {
-			session.CommitTransaction(context.Background())
-		} else {
-			session.AbortTransaction(context.Background())
-		}
-	}()
+	// sctx := mongo.NewSessionContext(ctx, session)
+	// if err = session.StartTransaction(); err != nil {
+	// 	return 0, util.Errorf("add WebData with Name %s failed", data.Name).WithCause(err)
+	// }
+	// defer func() {
+	// 	if err == nil {
+	// 		session.CommitTransaction(context.Background())
+	// 	} else {
+	// 		session.AbortTransaction(context.Background())
+	// 	}
+	// }()
 
 	WebDataNum++
 	data.ID = WebDataNum
-	res, err := WebDatadb.InsertOne(sctx, data)
+	res, err := WebDatadb.InsertOne(ctx, data)
 	if err != nil {
 		return 0, util.Errorf("add WebData %s failed to exec.", data.Name).WithCause(err)
 	}
 	for _, tag := range data.Tags {
-		err := IncTagRef(sctx, tag, 1)
+		err := IncTagRef(ctx, tag, 1)
 		if err != nil {
 			return 0, util.Errorf("add WebData with Name %s failed", data.Name).WithCause(err)
 		}
@@ -82,25 +82,25 @@ func AddWebData(data WebData) (num int, err error) {
 
 // 删除 WebData 表数据
 func DeleteWebData(ID int) (err error) {
-	session, err := WebDatadb.Database().Client().StartSession()
-	defer session.EndSession(context.Background())
+	// session, err := WebDatadb.Database().Client().StartSession()
+	// defer session.EndSession(context.Background())
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeoutTime)
 	defer cancel()
-	sctx := mongo.NewSessionContext(ctx, session)
-	if err = session.StartTransaction(); err != nil {
-		return util.Errorf("delete WebData with ID %d failed", ID).WithCause(err)
-	}
-	defer func() {
-		if err == nil {
-			session.CommitTransaction(context.Background())
-		} else {
-			session.AbortTransaction(context.Background())
-		}
-	}()
+	// sctx := mongo.NewSessionContext(ctx, session)
+	// if err = session.StartTransaction(); err != nil {
+	// 	return util.Errorf("delete WebData with ID %d failed", ID).WithCause(err)
+	// }
+	// defer func() {
+	// 	if err == nil {
+	// 		session.CommitTransaction(context.Background())
+	// 	} else {
+	// 		session.AbortTransaction(context.Background())
+	// 	}
+	// }()
 
 	filter := bson.M{"_id": ID}
 	var deletedWebData WebData
-	err = WebDatadb.FindOneAndDelete(sctx, filter).Decode(&deletedWebData)
+	err = WebDatadb.FindOneAndDelete(ctx, filter).Decode(&deletedWebData)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil
@@ -109,7 +109,7 @@ func DeleteWebData(ID int) (err error) {
 	}
 
 	for _, tag := range deletedWebData.Tags {
-		err := IncTagRef(sctx, tag, -1)
+		err := IncTagRef(ctx, tag, -1)
 		if err != nil {
 			if util.HaveErrorCode(err, codes.NotFound) {
 				continue
@@ -122,27 +122,27 @@ func DeleteWebData(ID int) (err error) {
 }
 
 // 更新 WebData 表数据
-func UpdateWebData(data WebData) error {
-	session, err := WebDatadb.Database().Client().StartSession()
-	defer session.EndSession(context.Background())
+func UpdateWebData(data WebData) (err error) {
+	// session, err := WebDatadb.Database().Client().StartSession()
+	// defer session.EndSession(context.Background())
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeoutTime)
 	defer cancel()
-	sctx := mongo.NewSessionContext(ctx, session)
-	if err = session.StartTransaction(); err != nil {
-		return util.Errorf("delete WebData with name %s failed", data.Name).WithCause(err)
-	}
-	defer func() {
-		if err == nil {
-			session.CommitTransaction(context.Background())
-		} else {
-			session.AbortTransaction(context.Background())
-		}
-	}()
+	// sctx := mongo.NewSessionContext(ctx, session)
+	// if err = session.StartTransaction(); err != nil {
+	// 	return util.Errorf("delete WebData with name %s failed", data.Name).WithCause(err)
+	// }
+	// defer func() {
+	// 	if err == nil {
+	// 		session.CommitTransaction(context.Background())
+	// 	} else {
+	// 		session.AbortTransaction(context.Background())
+	// 	}
+	// }()
 
 	filter := bson.M{"_id": data.ID}
 	update := bson.M{"$set": data}
 	var originData WebData
-	err = WebDatadb.FindOneAndUpdate(sctx, filter, update).Decode(&originData)
+	err = WebDatadb.FindOneAndUpdate(ctx, filter, update).Decode(&originData)
 	if err != nil {
 		return util.Errorf("update WebData %s failed", data.Name).WithCause(err)
 	}
@@ -162,7 +162,7 @@ func UpdateWebData(data WebData) error {
 		if _, ok := ignoreTags[ot]; ok {
 			continue
 		}
-		err := IncTagRef(sctx, ot, -1)
+		err := IncTagRef(ctx, ot, -1)
 		if err != nil {
 			if util.HaveErrorCode(err, codes.NotFound) {
 				continue
@@ -174,7 +174,7 @@ func UpdateWebData(data WebData) error {
 		if _, ok := ignoreTags[nt]; ok {
 			continue
 		}
-		err := IncTagRef(sctx, nt, 1)
+		err := IncTagRef(ctx, nt, 1)
 		if err != nil {
 			return util.Errorf("delete WebData with name %s failed", data.Name).WithCause(err)
 		}
