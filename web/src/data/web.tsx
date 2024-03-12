@@ -21,7 +21,7 @@ export class WebData {
                 console.log( response.data )
             } )
             .catch( error => {
-                console.error( 'Error add ' + this.Url + ':', error )
+                return 'Error add web ' + this.Url + ':' + error
             } )
     }
 
@@ -34,18 +34,18 @@ export class WebData {
                 console.log( response.data )
             } )
             .catch( error => {
-                console.error( 'Error delete ' + this.Url + ':', error )
+                return 'Error delete web ' + this.Url + ':' + error
             } )
     }
 
     public show ( addTag: ( tag: string ) => void ) {
         return (
-            <Card>
+            <Card style={ { margin: '5px' } }>
                 <CardContent>
                     <Tooltip title={
                         this.Description ? (
                             <Typography variant="body1">Description: { this.Description }</Typography>
-                        ) : <div />
+                        ) : null
                     } arrow>
                         <Typography variant="h6">{ this.Name }</Typography>
                     </Tooltip>

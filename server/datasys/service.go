@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/gorilla/mux"
+	"google.golang.org/grpc/codes"
 	// "github.com/sirupsen/logrus"
 )
 
@@ -69,7 +70,7 @@ func HandleSearchWeb(w http.ResponseWriter, r *http.Request) {
 }
 
 func HandleDeleteWeb(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
+	if r.Method != http.MethodDelete {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
 	}
@@ -128,7 +129,12 @@ func HandleAddTag(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, err := mongodb.AddTag(tagData); err != nil {
+	if err := mongodb.AddTag(tagData); err != nil {
+		if util.HaveErrorCode(err, codes.AlreadyExists){
+			w.WriteHeader(http.StatusConflict)
+			fmt.Fprint(w, err.Error())
+			return
+		}
 		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprint(w, err.Error())
 		return
@@ -156,7 +162,7 @@ func HandleGetAllTags(w http.ResponseWriter, r *http.Request) {
 }
 
 func HandleDeleteTag(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
+	if r.Method != http.MethodDelete {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
 	}

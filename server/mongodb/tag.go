@@ -45,16 +45,19 @@ func (Tag) initTable() {
 }
 
 // 插入 Tag 表数据
-func AddTag(data Tag) (int, error) {
+func AddTag(data Tag) error {
 	data.Ref = 0
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeoutTime)
 	defer cancel()
-	res, err := Tagdb.InsertOne(ctx, data)
+	_, err := Tagdb.InsertOne(ctx, data)
 	if err != nil {
-		return 0, util.Errorf("add Tag %s failed to exec.", data.Name).WithCause(err)
+		if mongo.IsDuplicateKeyError(err) {
+			return util.Errorf("add Tag %s failed to exec.", data.Name).WithCause(err).WithCode(codes.AlreadyExists)
+		}
+		return util.Errorf("add Tag %s failed to exec.", data.Name).WithCause(err)
 	}
 
-	return int(res.InsertedID.(int32)), nil
+	return nil
 }
 
 // 删除 Tag 表数据
