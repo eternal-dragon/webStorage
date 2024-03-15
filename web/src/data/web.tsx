@@ -51,7 +51,7 @@ export class WebData {
                     <div style={ { display: 'flex', justifyContent: 'space-between', alignItems: 'center' } }>
                         <Tooltip title={
                             this.Description ? (
-                                <Typography variant="body1">Description: { this.Description }</Typography>
+                                <Typography variant="body1">{ this.Description }</Typography>
                             ) : null
                         } arrow>
                             <Typography variant="h6">{ this.Name }</Typography>
@@ -68,7 +68,7 @@ export class WebData {
 
                     <div style={ { display: 'flex', alignItems: 'center' } }>
                         <Typography variant="body2">
-                            Tags:
+                            标签:
                         </Typography>
                         { this.Tags?.map( ( tag, index ) => (
                             <Chip

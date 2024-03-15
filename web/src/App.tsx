@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useState } from 'react'
 import './App.css'
 import { Search, WebData } from './data/web'
 import { Accordion, AccordionDetails, AccordionSummary, Alert, Button, Card, Chip, Paper, Snackbar, TextField, Typography } from '@mui/material'
-import { TagContext, TagData } from './data/tag'
+import { ShowTags, TagContext, TagData } from './data/tag'
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown'
 
 function App () {
@@ -11,7 +11,7 @@ function App () {
         throw new Error( 'tagsData must be used within a tagsProvider' )
     }
     const [ webDatas, setWebDatas ] = useState<WebData[]>()
-    const [ tags, setTags ] = useState<string[]>( [] )
+    const [ tags, setTags ] = useState<TagData[]>( [] )
     const [ exampleData, setExampleData ] = useState<WebData>( new WebData( 'http://www.baidu.com', [ '中文', '搜索' ], '百度', '谨防百度广告网页' ) )
     const [ newTag, setNewTag ] = useState<string>()
     const [ errorMessage, setErrorMessage ] = useState<string>()
@@ -25,7 +25,7 @@ function App () {
 
     const saveData = async () => {
         let saveData = exampleData
-        saveData.Tags = tags
+        saveData.Tags = tags.map( tag => tag.Name )
 
         try {
             let err = await saveData.save()
@@ -48,7 +48,7 @@ function App () {
             alert( "请选择要搜索的tag" )
             return
         }
-        Search( tags )
+        Search( tags.map( tag => tag.Name ) )
             .then( datas => {
                 setWebDatas( datas )
                 console.log( datas )
@@ -59,14 +59,10 @@ function App () {
     }
 
     const addTag = ( tag: string ) => {
-        if ( !tags.includes( tag ) ) {
-            const newTags: string[] = [ ...tags, tag ]
+        if ( !tags.map( tag => tag.Name ).includes( tag ) ) {
+            const newTags: TagData[] = [ ...tags, new TagData( tag ) ]
             setTags( newTags )
         }
-    }
-    const removeTag = ( tag: string ) => {
-        const newTags: string[] = tags.filter( ( t ) => t !== tag )
-        setTags( newTags )
     }
 
     const handleNameChange = ( event: React.ChangeEvent<HTMLInputElement> ) => {
@@ -189,14 +185,11 @@ function App () {
                             style={ { margin: '5px' } }
                         />
                         <br />
-                        { tags.map( ( tag, index ) => (
-                            <Chip
-                                key={ index }
-                                label={ tag }
-                                onDelete={ () => removeTag( tag ) }
-                                style={ { margin: '0.5rem' } }
-                            />
-                        ) ) }
+                        <ShowTags
+                            options={ ctx.tags }
+                            tags={ tags }
+                            setTags={ ( tags ) => ( setTags( tags ) ) }
+                        />
                         <Button
                             onClick={ saveData }
                             variant="outlined"
@@ -239,14 +232,11 @@ function App () {
                 </AccordionDetails>
             </Accordion>
             <div>
-                { tags.map( ( tag, index ) => (
-                    <Chip
-                        key={ index }
-                        label={ tag }
-                        onDelete={ () => removeTag( tag ) }
-                        style={ { margin: '0.5rem' } }
-                    />
-                ) ) }
+                <ShowTags
+                    options={ ctx.tags }
+                    tags={ tags }
+                    setTags={ ( tags ) => ( setTags( tags ) ) }
+                />
                 <Button
                     onClick={ searchData }
                     variant="outlined"

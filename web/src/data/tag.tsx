@@ -1,5 +1,6 @@
 import { FC, ReactNode, createContext, useEffect, useState } from "react"
 import { api } from "../network/api"
+import { Autocomplete, Chip, TextField, createFilterOptions } from "@mui/material"
 
 export class TagData {
     public Name!: string
@@ -90,5 +91,50 @@ export const TagProvider: FC<{ children: ReactNode }> = ( { children } ) => {
         <TagContext.Provider value={ { tags, setTags } }>
             { children }
         </TagContext.Provider>
+    )
+}
+
+interface ShowTagsProps {
+    options: TagData[],
+    tags: TagData[],
+    setTags: ( tags: TagData[] ) => void,
+}
+
+export function ShowTags ( { options, tags, setTags }: ShowTagsProps ) {
+    const filterOptions = ( options: TagData[], state: any ) => {
+        const filter = createFilterOptions<TagData>()
+        const filtered = filter( options, state )
+        const selectedTags = tags.map( tag => tag.Name )
+        return filtered.filter( ( option ) => !selectedTags.includes( option.Name ) )
+    }
+
+    return (
+        <Autocomplete
+            multiple
+            id="tags-search"
+            options={ options }
+            filterOptions={ filterOptions }
+            value={ tags }
+            getOptionLabel={ ( option: TagData ) => option.Name }
+            onChange={ ( event, value: TagData[] | null ) => setTags( value ? value : [] ) }
+            renderInput={ ( params ) => (
+                <TextField
+                    { ...params }
+                    variant="outlined"
+                    label="搜索标签"
+                    placeholder="请选择标签"
+                />
+            ) }
+            renderTags={ ( value: TagData[], getTagProps ) =>
+                value.map( ( tag: TagData, index: number ) => (
+                    <Chip
+                        { ...getTagProps( { index } ) }
+                        key={ index }
+                        label={ tag.Name }
+                        style={ { margin: '0.5rem' } }
+                    />
+                ) )
+            }
+        />
     )
 }
