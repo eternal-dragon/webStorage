@@ -5,6 +5,7 @@ import (
 	"server/util"
 	"strings"
 
+	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -28,6 +29,22 @@ func init() {
 
 func (WebData) initTable() {
 	WebDatadb = db.Collection("webData")
+
+	// 创建索引选项
+	indexOptions := options.Index().SetUnique(true)
+
+	// 创建索引模型
+	indexModel := mongo.IndexModel{
+		Keys:    bson.D{{Key: "url", Value: 1}},
+		Options: indexOptions,
+	}
+
+	// 创建唯一性索引
+	_, err := WebDatadb.Indexes().CreateOne(context.Background(), indexModel)
+	if err != nil {
+		logrus.Errorf("create index for webData url name err: %v", err)
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), dbTimeoutTime)
 	defer cancel()
 	// 创建一个排序条件，按降序排列
@@ -68,6 +85,9 @@ func AddWebData(data WebData) (num int, err error) {
 	data.ID = WebDataNum
 	res, err := WebDatadb.InsertOne(ctx, data)
 	if err != nil {
+		if mongo.IsDuplicateKeyError(err) {
+			return 0, util.Errorf("add WebData %s failed to exec.", data.Name).WithCause(err).WithCode(codes.AlreadyExists)
+		}
 		return 0, util.Errorf("add WebData %s failed to exec.", data.Name).WithCause(err)
 	}
 	for _, tag := range data.Tags {
@@ -144,6 +164,9 @@ func UpdateWebData(data WebData) (err error) {
 	var originData WebData
 	err = WebDatadb.FindOneAndUpdate(ctx, filter, update).Decode(&originData)
 	if err != nil {
+		if mongo.IsDuplicateKeyError(err) {
+			return util.Errorf("update WebData %s failed to exec.", data.Name).WithCause(err).WithCode(codes.AlreadyExists)
+		}
 		return util.Errorf("update WebData %s failed", data.Name).WithCause(err)
 	}
 

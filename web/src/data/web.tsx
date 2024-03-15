@@ -17,14 +17,17 @@ export class WebData {
         this.ID = id
     }
 
-    public save () {
-        api.post( `/web`, this )
-            .then( response => {
-                console.log( response.data )
-            } )
-            .catch( error => {
-                console.log( 'Error add web ' + this.Url + ':' + error )
-            } )
+    public async save (): Promise<string> {
+        try {
+            const response = await api.post( `/web`, this )
+            console.log( response.data )
+            return 'success'
+        } catch ( error: any ) {
+            if ( error.response.status === 409 ) {
+                return `${ this.Url } 网址已存在`
+            }
+            return 'Error add web ' + this.Url + ':' + error
+        }
     }
 
     public delete () {

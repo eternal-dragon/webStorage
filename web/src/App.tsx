@@ -23,10 +23,16 @@ function App () {
         return <div>加载中... tags</div>
     }
 
-    const saveData = () => {
+    const saveData = async () => {
         let saveData = exampleData
         saveData.Tags = tags
-        saveData.save()
+
+        try {
+            let err = await saveData.save()
+            setErrorMessage( err )
+        } catch ( error ) {
+            console.error( 'Unexpected error during save:', error )
+        }
     }
 
     const delelteData = ( id: number | undefined ) => {

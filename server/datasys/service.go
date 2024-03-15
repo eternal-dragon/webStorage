@@ -40,6 +40,11 @@ func HandleAddWeb(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if _, err := mongodb.AddWebData(webData); err != nil {
+		if util.HaveErrorCode(err, codes.AlreadyExists){
+			w.WriteHeader(http.StatusConflict)
+			fmt.Fprint(w, err.Error())
+			return
+		}
 		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprint(w, err.Error())
 		return
