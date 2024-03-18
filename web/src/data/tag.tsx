@@ -101,19 +101,13 @@ interface ShowTagsProps {
 }
 
 export function ShowTags ( { options, tags, setTags }: ShowTagsProps ) {
-    const filterOptions = ( options: TagData[], state: any ) => {
-        const filter = createFilterOptions<TagData>()
-        const filtered = filter( options, state )
-        const selectedTags = tags.map( tag => tag.Name )
-        return filtered.filter( ( option ) => !selectedTags.includes( option.Name ) )
-    }
-
     return (
         <Autocomplete
             multiple
             id="tags-search"
             options={ options }
-            filterOptions={ filterOptions }
+            filterSelectedOptions
+            isOptionEqualToValue={ ( option, value ) => option.Name === value.Name }
             value={ tags }
             getOptionLabel={ ( option: TagData ) => option.Name }
             onChange={ ( event, value: TagData[] | null ) => setTags( value ? value : [] ) }
