@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react'
 import './App.css'
-import { Search, WebData } from './data/web'
-import { Accordion, AccordionDetails, AccordionSummary, Alert, Button, Card, Chip, Paper, Snackbar, TextField, Typography } from '@mui/material'
+import { EditWeb, Search, WebData } from './data/web'
+import { Accordion, AccordionDetails, AccordionSummary, Alert, Button, Card, Chip, Dialog, DialogTitle, Paper, Snackbar, TextField, Typography } from '@mui/material'
 import { ShowTags, TagContext, TagData } from './data/tag'
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown'
 
@@ -17,18 +17,14 @@ function App () {
     const [ errorMessage, setErrorMessage ] = useState<string>()
 
     console.log( ctx.tags )
-    console.log( ctx.tags.length )
 
     if ( ctx.tags === undefined || ctx.tags === null || !ctx.tags.length ) {
         return <div>加载中... tags</div>
     }
 
     const saveData = async () => {
-        let saveData = exampleData
-        saveData.Tags = tags.map( tag => tag.Name )
-
         try {
-            let err = await saveData.save()
+            let err = await exampleData.save()
             setErrorMessage( err )
         } catch ( error ) {
             console.error( 'Unexpected error during save:', error )
@@ -63,36 +59,6 @@ function App () {
             const newTags: TagData[] = [ ...tags, new TagData( tag ) ]
             setTags( newTags )
         }
-    }
-
-    const handleNameChange = ( event: React.ChangeEvent<HTMLInputElement> ) => {
-        setExampleData( ( prevData ) => ( {
-            ...prevData,
-            Name: event.target.value,
-            save: prevData.save,
-            delete: prevData.delete,
-            show: prevData.show,
-        } ) )
-    }
-
-    const handleUrlChange = ( event: React.ChangeEvent<HTMLInputElement> ) => {
-        setExampleData( ( prevData ) => ( {
-            ...prevData,
-            Url: event.target.value,
-            save: prevData.save,
-            delete: prevData.delete,
-            show: prevData.show,
-        } ) )
-    }
-
-    const handleDescriptionChange = ( event: React.ChangeEvent<HTMLInputElement> ) => {
-        setExampleData( ( prevData ) => ( {
-            ...prevData,
-            Description: event.target.value,
-            save: prevData.save,
-            delete: prevData.delete,
-            show: prevData.show,
-        } ) )
     }
 
     const DeleteTag = ( tag: string ) => {
@@ -144,6 +110,25 @@ function App () {
         )
     }
 
+    const handleCloseEditor = () => {
+        if ( exampleData.ID !== undefined && webDatas !== undefined ) {
+            const updatedWebDatas = webDatas.map( data => {
+                if ( data.ID === exampleData.ID ) {
+                    return exampleData
+                }
+                return data
+            } )
+            setWebDatas( updatedWebDatas )
+        }
+        setExampleData( ( prevData ) => ( {
+            ...prevData,
+            ID: undefined,
+            save: prevData.save,
+            delete: prevData.delete,
+            show: prevData.show,
+        } ) )
+    }
+
     return (
         <div className='contentContainer'>
             <Snackbar
@@ -161,44 +146,7 @@ function App () {
                     <Typography>新增数据</Typography>
                 </AccordionSummary>
                 <AccordionDetails>
-                    <Paper>
-                        <Typography style={ { margin: '10px' } }>网站数据</Typography>
-                        <TextField
-                            required
-                            label="Name"
-                            value={ exampleData.Name }
-                            onChange={ handleNameChange }
-                            style={ { margin: '5px' } }
-                        />
-                        <TextField
-                            required
-                            label="Url"
-                            value={ exampleData.Url }
-                            onChange={ handleUrlChange }
-                            style={ { margin: '5px' } }
-                        />
-                        <TextField
-                            required
-                            label="Description"
-                            value={ exampleData.Description }
-                            onChange={ handleDescriptionChange }
-                            style={ { margin: '5px' } }
-                        />
-                        <br />
-                        <ShowTags
-                            options={ ctx.tags }
-                            tags={ tags }
-                            setTags={ ( tags ) => ( setTags( tags ) ) }
-                        />
-                        <Button
-                            onClick={ saveData }
-                            variant="outlined"
-                            disabled={ tags.length === 0 }
-                            style={ { margin: '5px' } }
-                        >
-                            { tags.length > 0 ? "保存" : "先选择标签再保存" }
-                        </Button>
-                    </Paper>
+                    { EditWeb( exampleData, setExampleData, saveData ) }
                     <br />
                     <Paper>
                         <Typography style={ { margin: '10px' } }>标签数据</Typography>
@@ -262,10 +210,20 @@ function App () {
                 <h2>搜索结果:</h2>
                 <ul>
                     { webDatas && webDatas.map( ( data ) => {
-                        return data.show( ( tag: string ): void => { addTag( tag ) }, () => ( delelteData( data.ID ) ) )
+                        return data.show(
+                            ( tag: string ): void => { addTag( tag ) },
+                            () => ( delelteData( data.ID ) ),
+                            () => ( setExampleData( data ) ) )
                     } ) }
                 </ul>
             </div>
+            <Dialog
+                open={ exampleData.ID !== undefined }
+                onClose={ handleCloseEditor }
+            >
+                <DialogTitle>修改网站数据</DialogTitle>
+                { EditWeb( exampleData, setExampleData, saveData ) }
+            </Dialog>
             <div style={ { position: 'fixed', bottom: 0, width: '100%', textAlign: 'center', background: '#fff', padding: '5px' } }>
                 <a href="https://beian.miit.gov.cn" style={ { color: 'black' } }>
                     ICP备2023022447号-1
